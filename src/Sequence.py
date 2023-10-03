@@ -234,12 +234,15 @@ class SequenceLibrary():
         # Convert df list into a pandas dataframe
         df = pd.DataFrame(df, columns=['seq'])
         # Create the counts_df which contains the number oc occurrences of each unique aptamer
-        counts_df = pd.DataFrame(df['seq'].value_counts()).rename(columns={'seq': 'counts'})
+        counts_df = pd.DataFrame(df['seq'].value_counts()).rename(columns={'seq': 'count'})
         # Extract som other values from the dataframe
         counts_df['seqs'] = counts_df.index.to_numpy()
-        counts_df['freq'] = counts_df['counts'] / counts_df['counts'].sum()
+        counts_df['freq'] = counts_df['count'] / counts_df['count'].sum()
         counts_df = counts_df.reset_index().sort_values(by=['freq'], ascending=False)
-        counts_df.drop(columns=['index'], inplace=True)
+        #print(counts_df)
+        #counts_df.drop(columns=['index'], inplace=True)
+        #counts_df = counts_df.drop(counts_df.columns[0], axis = 1, inplace = True)
+        print(counts_df)  
         freq = counts_df['freq'].tolist()
         cum_freq = []
         for i in range(0, len(freq)):
@@ -309,7 +312,7 @@ class SequenceLibrary():
         f.close()
         # Use RNAfold to get the structures and mfes of all the aptamers and write them to (temp_ct.txt)
         ct_file = str(os.getcwd()) + "/temp_ct.txt"
-        cmd = f"RNAfold --jobs={multiprocessing.cpu_count()} --infile={seq_file} --outfile={ct_file.split('/')[-1]} --noPS -T {37.0} --noconv"
+        cmd = f"RNAfold  --infile={seq_file} --outfile={ct_file.split('/')[-1]} --noPS -T {37.0} --noconv"
         subprocess.call([cmd], shell=True)
         """
         The structure of temp_ct.txt is the following:
@@ -317,6 +320,9 @@ class SequenceLibrary():
         ........((((((.......))))))... (-5.2)
         and so on for each aptamer
         """
+
+        if os.path.exists(ct_file + ".fold"):
+              os.rename(ct_file + ".fold", ct_file)
         # Create a dictionary from the information in temp_ct.txt
         ct_dict = {}
         with open(ct_file, 'r') as f:
@@ -412,7 +418,7 @@ class SequenceLibrary():
             df = self.get_count_single_run(binding_target, rnd).head(top_k)
         # Get squences and counts as lists. Also initialize an empty list to store the seqids
         sequences = df['seqs'].tolist()
-        counts = df['counts'].tolist()
+        counts = df['count'].tolist()
         seqids = []
         # self.info = {} is a dictionary that contains several other dictionaries.
         # On the first level there are the different binding_targets of the study (usually we only compute the library for one binding_target at a
