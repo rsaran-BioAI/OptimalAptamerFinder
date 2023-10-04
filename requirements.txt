@@ -6,3 +6,4 @@ matplotlib
 scipy
 scikit-bio
 tqdm
+ipykernel
